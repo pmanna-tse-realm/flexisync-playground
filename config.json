@@ -1,0 +1,9 @@
+{
+  "appId": "video-kvyxb",
+  "video-kvyxb": {
+    "Oldies": {
+      "class": "MovieDetail",
+      "filter": "year <= 2000"
+    }
+  }
+}
