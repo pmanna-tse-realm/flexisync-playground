@@ -1,9 +1,12 @@
+#!/usr/bin/env node
+
 const Realm = require("realm");
 const inquirer = require("inquirer");
 const clear = require("clear");
 const main = require("./main");
 const users = require("./users");
 const config = require("./config");
+const { applyInitialSubscriptions } = require("./subscriptions");
 const output = require("./output");
 const ora = require('ora');
 
@@ -104,43 +107,6 @@ run().catch((err) => {
   output.error(err.message);
 });
 
-async function applySubscriptions(realm) {
-  if (realm.subscriptions.isEmpty) {
-    let appId = config.getValue("appId")
-    let subscriptions = config.getValue(appId);
-
-    if (subscriptions == undefined) {
-      subscriptions = {};
-      config.setValue(appId, subscriptions);
-    } else {
-      let keys = Object.keys(subscriptions);
-
-      if (keys.length > 0) {
-        spinner.text = 'Applying subscriptions…';
-
-        let cursors = {};
-
-        keys.forEach(element => {
-          let className = subscriptions[element]["class"];
-
-          cursors[className] = realm.objects(className);
-        });
-
-        await realm.subscriptions.update((mutableSubs) => {
-          keys.forEach(element => {
-            let className = subscriptions[element]["class"];
-            let objects = cursors[className];
-
-            mutableSubs.add(objects.filtered(subscriptions[element]["filter"]), { name: element });
-          });
-        });
-
-        await realm.subscriptions.waitForSynchronization();
-      }
-    }
-  }
-}
-
 async function getRealm() {
   try {
     if (realm == undefined) {
@@ -149,7 +115,9 @@ async function getRealm() {
 
       realm = await openRealm();
 
-      await applySubscriptions(realm);
+      spinner.text = 'Applying subscriptions…';
+
+      await applyInitialSubscriptions(realm);
 
       spinner.succeed('Opened realm!');
     }

@@ -1,5 +1,5 @@
 const Realm = require("realm");
-const inquirer = require("inquirer");
+const main = require("./main");
 const index = require("./index");
 const config = require("./config");
 const output = require("./output");
@@ -35,13 +35,7 @@ async function showContent() {
     }
   }
 
-  const input = await inquirer.prompt([
-    {
-      type: "input",
-      name: "dummy",
-      message: "Press a key to proceed…",
-    }
-  ]);
+  await main.waitForKey();
 }
 
 exports.showContent = showContent;

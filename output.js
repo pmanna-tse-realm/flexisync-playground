@@ -31,3 +31,8 @@ module.exports.watchResult = function (header, text) {
   );
   console.log(chalk.cyanBright(text + "\n"));
 };
+
+module.exports.table = function (object, properties) {
+  console.log('\n');
+  console.table(object, properties);
+}

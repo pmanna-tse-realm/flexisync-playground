@@ -3,6 +3,7 @@ const clear = require("clear");
 const users = require("./users");
 const index = require("./index");
 const content = require("./content");
+const subscriptions = require("./subscriptions");
 const output = require("./output");
 
 const Choices = {
@@ -10,8 +11,20 @@ const Choices = {
   ListSubs: "List current subscriptions",
   AddSub: "Add/Modify a subscription",
   DelSub: "Delete a subscription",
+  RefreshSub: "Refresh subscriptions",
   LogOut: "Log out",
+  Quit: "Quit",
 };
+
+async function waitForKey() {
+  const input = await inquirer.prompt([
+    {
+      type: "input",
+      name: "dummy",
+      message: "Press Enter to proceed…",
+    }
+  ]);
+}
 
 async function mainMenu() {
   try {
@@ -22,6 +35,7 @@ async function mainMenu() {
       name: "mainMenu",
       message: "What would you like to do?",
       choices: [...Object.values(Choices), new inquirer.Separator()],
+      pageSize: 32
     });
 
     switch (answers.mainMenu) {
@@ -30,12 +44,18 @@ async function mainMenu() {
         return mainMenu();
       }
       case Choices.ListSubs: {
+        await subscriptions.listSubscriptions();
         return mainMenu();
       }
       case Choices.AddSub: {
         return mainMenu();
       }
       case Choices.DelSub: {
+        await subscriptions.removeSubscription();
+        return mainMenu();
+      }
+      case Choices.RefreshSub: {
+        await subscriptions.refreshSubscriptions();
         return mainMenu();
       }
       case Choices.LogOut: {
@@ -49,6 +69,11 @@ async function mainMenu() {
         }
         return;
       }
+      case Choices.Quit: {
+        await index.closeRealm();
+
+        process.exit(0);
+      }
       default: {
         return mainMenu();
       }
@@ -59,5 +84,5 @@ async function mainMenu() {
   }
 }
 
-
+exports.waitForKey = waitForKey;
 exports.mainMenu = mainMenu;

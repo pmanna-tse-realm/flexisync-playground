@@ -1,9 +1,15 @@
 {
   "appId": "video-kvyxb",
   "video-kvyxb": {
-    "Oldies": {
-      "class": "MovieDetail",
-      "filter": "year <= 2000"
+    "subscriptions": {
+      "Oldies": {
+        "class": "MovieDetail",
+        "filter": "year <= 2000"
+      },
+      "Spielberg": {
+        "class": "MovieDetail",
+        "filter": "director CONTAINS[c] 'Spielberg'"
+      }
     }
   }
 }
