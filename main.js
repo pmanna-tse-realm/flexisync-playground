@@ -48,6 +48,7 @@ async function mainMenu() {
         return mainMenu();
       }
       case Choices.AddSub: {
+        await subscriptions.addModifySubscription();
         return mainMenu();
       }
       case Choices.DelSub: {

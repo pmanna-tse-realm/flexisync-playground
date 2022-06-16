@@ -6,6 +6,13 @@ const main = require("./main");
 const output = require("./output");
 const config = require("./config");
 
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+ 
+
 function getSavedSubscriptions() {
   const appId = config.getValue("appId")
   let appParams = config.getValue(appId);
@@ -30,20 +37,20 @@ function getSubscriptions(realm) {
   }
 }
 
-async function listSubscriptions() {
-  const subscriptions = getSubscriptions(await index.getRealm());
-
-  output.table(subscriptions);
-
-  await main.waitForKey();
-}
-
 async function clearSubscriptions(realm) {
   if (!realm.subscriptions.isEmpty) {
     await realm.subscriptions.update((mutableSubs) => {
       mutableSubs.removeAll();
     });
   }
+}
+
+async function listSubscriptions() {
+  const subscriptions = getSubscriptions(await index.getRealm());
+
+  output.table(subscriptions);
+
+  await main.waitForKey();
 }
 
 async function applyInitialSubscriptions(realm) {
@@ -74,20 +81,62 @@ async function applyInitialSubscriptions(realm) {
   await realm.subscriptions.waitForSynchronization();
 }
 
-async function refreshSubscriptions() {
-  const realm = await index.getRealm();
+async function addModifySubscription() {
+  const realm = await index.getRealm()
 
-  if (realm) {
-    const spinner = index.spinner;
+  const input = await inquirer.prompt([
+    {
+      type: "input",
+      name: "name",
+      message: "Please enter the subscription name:",
+    },
+    {
+      type: "input",
+      name: "collection",
+      message: "Collection/Table Name:",
+    },
+    {
+      type: "input",
+      name: "query",
+      message: "RQL Filter:",
+    },
+  ]);
 
-    spinner.text = "Clearing subscriptions…";
-    spinner.start();
-    await clearSubscriptions(realm);
-    spinner.text = "Applying subscriptions…";
-    await applyInitialSubscriptions(realm);
+  // Do nothing if parameters aren't long enough
+  if ((input.name.length < 2) || (input.collection.length < 2) || (input.query.length < 2)) { return; }
 
-    spinner.succeed("Subscriptions refreshed!");
+  try {
+    const objects = realm.objects(input.collection);
+
+    if (objects) {
+      const spinner = index.spinner;
+
+      spinner.text = `Adding/Modifying subscription ${input.name}…`;
+      spinner.start();
+
+      await realm.subscriptions.update((mutableSubs) => {
+        mutableSubs.add(objects.filtered(input.query), { name: input.name });
+      });
+
+      spinner.text = "Refreshing subscriptions…";
+      await realm.subscriptions.waitForSynchronization();
+
+      const appId = config.getValue("appId")
+      let appParams = config.getValue(appId);
+
+      appParams.subscriptions[input.name] = { class: input.collection, filter: input.query };
+
+      config.setValue(appId, appParams);
+
+      spinner.succeed("Subscriptions refreshed!");
+    } else {
+      output.error(`Class ${input.class} doesn't exist!`);
+    }
+  } catch (err) {
+    output.error(err.message);
   }
+      
+  await sleep(2000);
 }
 
 async function removeSubscription() {
@@ -133,11 +182,32 @@ async function removeSubscription() {
       config.setValue(appId, appParams);
 
       spinner.succeed("Subscriptions refreshed!");
+      
+      await sleep(2000);
     }
+  }
+}
+
+async function refreshSubscriptions() {
+  const realm = await index.getRealm();
+
+  if (realm) {
+    const spinner = index.spinner;
+
+    spinner.text = "Clearing subscriptions…";
+    spinner.start();
+    await clearSubscriptions(realm);
+    spinner.text = "Applying subscriptions…";
+    await applyInitialSubscriptions(realm);
+
+    spinner.succeed("Subscriptions refreshed!");
+      
+    await sleep(2000);
   }
 }
 
 exports.listSubscriptions = listSubscriptions;
 exports.applyInitialSubscriptions = applyInitialSubscriptions;
-exports.refreshSubscriptions = refreshSubscriptions;
+exports.addModifySubscription = addModifySubscription;
 exports.removeSubscription = removeSubscription;
+exports.refreshSubscriptions = refreshSubscriptions;
