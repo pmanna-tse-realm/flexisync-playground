@@ -71,8 +71,13 @@ async function applyInitialSubscriptions(realm) {
         keys.forEach(element => {
           let className = subscriptions[element]["class"];
           let objects = cursors[className];
+          let query = subscriptions[element]["filter"];
 
-          mutableSubs.add(objects.filtered(subscriptions[element]["filter"]), { name: element });
+          if (query.length > 2) {
+            mutableSubs.add(objects.filtered(query), { name: element });
+          } else {
+            mutableSubs.add(objects, { name: element });
+          }
         });
       });
     }
@@ -103,7 +108,7 @@ async function addModifySubscription() {
   ]);
 
   // Do nothing if parameters aren't long enough
-  if ((input.name.length < 2) || (input.collection.length < 2) || (input.query.length < 2)) { return; }
+  if ((input.name.length < 2) || (input.collection.length < 2)) { return; }
 
   try {
     const objects = realm.objects(input.collection);
@@ -115,7 +120,11 @@ async function addModifySubscription() {
       spinner.start();
 
       await realm.subscriptions.update((mutableSubs) => {
-        mutableSubs.add(objects.filtered(input.query), { name: input.name });
+        if (input.query.length > 2) {
+          mutableSubs.add(objects.filtered(input.query), { name: input.name });
+        } else {
+          mutableSubs.add(objects, { name: input.name });
+        }
       });
 
       spinner.text = "Refreshing subscriptions…";
