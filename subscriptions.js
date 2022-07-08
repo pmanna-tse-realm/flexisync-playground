@@ -82,8 +82,6 @@ async function applyInitialSubscriptions(realm) {
       });
     }
   }
-
-  await realm.subscriptions.waitForSynchronization();
 }
 
 async function addModifySubscription() {
@@ -127,9 +125,6 @@ async function addModifySubscription() {
         }
       });
 
-      spinner.text = "Refreshing subscriptions…";
-      await realm.subscriptions.waitForSynchronization();
-
       const appId = config.getValue("appId")
       let appParams = config.getValue(appId);
 
@@ -137,7 +132,7 @@ async function addModifySubscription() {
 
       config.setValue(appId, appParams);
 
-      spinner.succeed("Subscriptions refreshed!");
+      spinner.succeed("Subscriptions updated!");
     } else {
       output.error(`Class ${input.class} doesn't exist!`);
     }
@@ -180,9 +175,6 @@ async function removeSubscription() {
         mutableSubs.removeByName(choice.remove);
       });
 
-      spinner.text = "Refreshing subscriptions…";
-      await realm.subscriptions.waitForSynchronization();
-
       const appId = config.getValue("appId")
       let appParams = config.getValue(appId);
 
@@ -190,7 +182,7 @@ async function removeSubscription() {
 
       config.setValue(appId, appParams);
 
-      spinner.succeed("Subscriptions refreshed!");
+      spinner.succeed("Subscription removed!");
       
       await sleep(1000);
     }
