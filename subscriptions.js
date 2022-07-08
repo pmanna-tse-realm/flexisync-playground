@@ -12,7 +12,7 @@ function sleep(ms) {
   });
 }
  
-
+// We keep our own copy of the subscriptions' definition to support the Refresh functionality
 function getSavedSubscriptions() {
   const appId = config.getValue("appId")
   let appParams = config.getValue(appId);
@@ -145,7 +145,7 @@ async function addModifySubscription() {
     output.error(err.message);
   }
       
-  await sleep(2000);
+  await sleep(1000);
 }
 
 async function removeSubscription() {
@@ -192,7 +192,7 @@ async function removeSubscription() {
 
       spinner.succeed("Subscriptions refreshed!");
       
-      await sleep(2000);
+      await sleep(1000);
     }
   }
 }
@@ -211,7 +211,7 @@ async function refreshSubscriptions() {
 
     spinner.succeed("Subscriptions refreshed!");
       
-    await sleep(2000);
+    await sleep(1000);
   }
 }
 
