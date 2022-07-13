@@ -3,11 +3,11 @@
 const Realm = require("realm");
 const inquirer = require("inquirer");
 const clear = require("clear");
-const main = require("./main");
-const users = require("./users");
-const config = require("./config");
-const { applyInitialSubscriptions } = require("./subscriptions");
-const output = require("./output");
+const main = require("./src/main");
+const users = require("./src/users");
+const config = require("./src/config");
+const { applyInitialSubscriptions } = require("./src/subscriptions");
+const output = require("./src/output");
 const ora = require('ora');
 
 let realm;

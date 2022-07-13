@@ -1,6 +1,6 @@
 const Realm = require("realm");
 const main = require("./main");
-const index = require("./index");
+const index = require("../index");
 const config = require("./config");
 const output = require("./output");
 const inquirer = require("inquirer");
