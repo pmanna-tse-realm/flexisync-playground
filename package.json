@@ -1,5 +1,5 @@
 {
-  "name": "fsyncplay",
+  "name": "flxsyncplay",
   "version": "1.0.0",
   "description": "A Flexible Sync PlayGround to test app and subscriptions",
   "main": "index.js",
@@ -15,6 +15,9 @@
     "inquirer": "^8.2.4",
     "ora": "^5.4.1",
     "realm": "^10.19.0"
+  },
+  "bin": {
+    "flxsyncplay": "index.js"
   },
   "author": "Paolo Manna",
   "license": "MIT"

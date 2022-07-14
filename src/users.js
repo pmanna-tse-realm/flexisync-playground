@@ -4,6 +4,7 @@ const index = require("../index");
 const config = require("./config");
 const main = require("./main");
 const output = require("./output");
+const { logToFile } = require('./logger');
 
 let app;
 
@@ -16,6 +17,7 @@ function setupApp(appId) {
   app = new Realm.App(appConfig);
 
   Realm.App.Sync.setLogLevel(app, "error");
+  Realm.App.Sync.setLogger(app, (level, message) => logToFile(`(${level}) ${message}`));
 
   config.setValue("appId", appId);
 }
@@ -53,6 +55,13 @@ async function logIn() {
     },
   ]);
 
+  if ((input.email.length < 5) || (input.password.length < 3)) {
+    output.error("Invalid user/password");
+    await main.waitForKey();
+    index.login();
+    return;
+  }
+
   try {
     const credentials = Realm.Credentials.emailPassword(
       input.email,
@@ -88,6 +97,13 @@ async function registerUser() {
       mask: "*",
     },
   ]);
+
+  if ((input.email.length < 5) || (input.password.length < 3)) {
+    output.error("Invalid user/password");
+    await main.waitForKey();
+    index.login();
+    return;
+  }
 
   try {
     await app.emailPasswordAuth.registerUser({
