@@ -9,16 +9,39 @@ const config = require("./src/config");
 const { applyInitialSubscriptions } = require("./src/subscriptions");
 const output = require("./src/output");
 const ora = require('ora');
+const { logToFile } = require('./src/logger');
 
 let realm;
 let spinner = ora("Working…");
 
-async function openRealm(partitionKey) {
+// General error handler: this will handle manual client reset,
+// but is also needed if breaking changes are applied, as "discardLocal" won't be enough
+function errorSync(session, error) {
+  if (realm != undefined) {
+    switch (error.name) {
+      case 'ClientReset':
+        const realmPath = realm.path;
+
+        closeRealm();
+
+        logToFile(`Error ${error.message}, need to reset ${realmPath}…`);
+        Realm.App.Sync.initiateClientReset(users.getApp(), realmPath);
+        break;
+      // TODO: Handle other cases…
+      default:
+        logToFile(`Received error ${error.message}`);
+    }
+  }
+}
+
+async function openRealm() {
   const config = {
-    // schema: [schemas.TaskSchema, schemas.UserSchema, schemas.ProjectSchema],
     sync: {
       user: users.getAuthedUser(),
-      flexible: true
+      flexible: true,
+      newRealmFileBehavior: { type: 'downloadBeforeOpen', timeOutBehavior: 'throwException' },
+      existingRealmFileBehavior: { type: 'openImmediately', timeOutBehavior: 'openLocalRealm' },
+      error: errorSync
     },
   };
   return Realm.open(config);
@@ -127,7 +150,7 @@ async function getRealm() {
   return realm;
 }
 
-async function closeRealm() {
+function closeRealm() {
   if (realm != undefined) {
     realm.close();
     realm = undefined;

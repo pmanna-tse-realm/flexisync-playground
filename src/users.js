@@ -22,6 +22,10 @@ function setupApp(appId) {
   config.setValue("appId", appId);
 }
 
+function getApp() {
+  return app;
+}
+
 async function anonymous() {
   try {
     const credentials = Realm.Credentials.anonymous();
@@ -133,7 +137,7 @@ async function registerUser() {
 async function logOut() {
   user = app.currentUser;
   await user.logOut();
-  await index.closeRealm();
+  index.closeRealm();
   return !user.isLoggedIn;
 }
 
@@ -141,6 +145,7 @@ function getAuthedUser() {
   return app.currentUser;
 }
 
+exports.getApp = getApp;
 exports.setupApp = setupApp;
 exports.getAuthedUser = getAuthedUser;
 exports.anonymous = anonymous;

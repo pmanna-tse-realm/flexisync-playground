@@ -71,7 +71,7 @@ async function mainMenu() {
         return;
       }
       case Choices.Quit: {
-        await index.closeRealm();
+        index.closeRealm();
 
         process.exit(0);
       }
