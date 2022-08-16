@@ -130,6 +130,16 @@ run().catch((err) => {
   output.error(err.message);
 });
 
+function transferProgress(transferred, transferables) {
+  if (transferables > 0) {
+    if (transferred < transferables) {
+      logToFile(`Transferred ${transferred} of ${transferables}`);
+    } else {
+      logToFile(`Transfer finished :  ${transferred} -> ${transferables}`);
+    }
+  }
+}
+
 async function getRealm() {
   try {
     if (realm == undefined) {
@@ -137,6 +147,8 @@ async function getRealm() {
       spinner.start();
 
       realm = await openRealm();
+
+      realm.syncSession.addProgressNotification('download', 'reportIndefinitely', transferProgress);
 
       spinner.text = 'Applying subscriptions…';
 
