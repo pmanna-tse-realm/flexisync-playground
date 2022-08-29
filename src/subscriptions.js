@@ -20,6 +20,9 @@ function getSavedSubscriptions() {
   if (appParams == undefined) {
     appParams = { subscriptions: {} };
     config.setValue(appId, appParams);
+  } else if (appParams.subscriptions == undefined) {
+    appParams.subscriptions = {};
+    config.setValue(appId, appParams);
   }
 
   return appParams.subscriptions;
@@ -128,6 +131,9 @@ async function addModifySubscription() {
       const appId = config.getValue("appId")
       let appParams = config.getValue(appId);
 
+      if (appParams.subscriptions == undefined) {
+        appParams.subscriptions = {};
+      }
       appParams.subscriptions[input.name] = { class: input.collection, filter: input.query };
 
       config.setValue(appId, appParams);
