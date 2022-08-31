@@ -1,6 +1,6 @@
 const fs = require("fs");
+const packageDetails = require('../package');
 
-let logFile;
 let stream;
 
 function fileExistsSync(file) {
@@ -13,21 +13,22 @@ function fileExistsSync(file) {
 }
 
 function createLogName() {
-  let applicationName = process.env.npm_package_name ?? "NodeApp";
+  let applicationName = process.env.npm_package_name ?? (packageDetails.name ?? "NodeApp");
   let progressive = 0;
   let date = new Date().toISOString().substring(0, 10);
+  let logFile;
 
   do {
     progressive += 1;
     logFile = `./${applicationName}.${date}_${progressive}.log`
   } while (fileExistsSync(logFile));
+
+  return logFile;
 }
 
 exports.logToFile = function logToFile(message) {
   if (!stream) {
-    createLogName();
-
-    stream  = fs.createWriteStream(logFile, {flags:'a'});
+    stream = fs.createWriteStream(createLogName(), { flags: 'a' });
   }
 
   let date = new Date();
