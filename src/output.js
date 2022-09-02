@@ -34,5 +34,10 @@ module.exports.watchResult = function (header, text) {
 
 module.exports.table = function (object, properties) {
   console.log('\n');
-  console.table(object, properties);
+
+  if ((Array.isArray(object)) && (object.length > 0)) {
+    console.table(object, properties);
+  } else {
+    console.log(chalk.bgGreen.black("     List is empty     \n"));
+  }
 }

@@ -17,20 +17,38 @@ let spinner = ora("Working…");
 // General error handler: this will handle manual client reset,
 // but is also needed if breaking changes are applied, as "discardLocal" won't be enough
 function errorSync(session, error) {
-  if (realm != undefined) {
-    switch (error.name) {
-      case 'ClientReset':
+  let msg = "";
+
+  switch (error.name) {
+    case 'ClientReset':
+      if (realm != undefined) {
         const realmPath = realm.path;
 
         closeRealm();
 
-        logToFile(`Error ${error.message}, need to reset ${realmPath}…`);
+        msg = `Error: ${error.message} Need to reset ${realmPath} and exit…`;
+
         Realm.App.Sync.initiateClientReset(users.getApp(), realmPath);
-        break;
-      // TODO: Handle other cases…
-      default:
-        logToFile(`Received error ${error.message}`);
-    }
+      } else {
+        msg = `Error: ${error.message} Exiting…`;
+      }
+      logToFile(msg);
+      output.error(msg);
+
+      // We can't rely on when this is called, to have a clean recover,
+      // chances are that we're inside one of the `inquirer` promises, so we can't do much
+      setTimeout(() => { process.exit(error.code) }, 1000);
+
+      break;
+    // Handle other cases…
+    default:
+      msg = `Error: ${error.message} Exiting…`;
+
+      logToFile(msg);
+      output.error(msg);
+
+      setTimeout(() => { process.exit(error.code) }, 1000);
+      break;
   }
 }
 
@@ -94,7 +112,7 @@ async function login() {
 }
 
 async function run() {
-  let appId = await config.getValue("appId");
+  let appId = config.getValue("appId");
 
   output.intro("Flexible Sync");
 
@@ -122,7 +140,7 @@ async function run() {
 
     await login();
   } catch (error) {
-    output.error(error);
+    throw (error);
   }
 }
 
@@ -141,25 +159,35 @@ function transferProgress(transferred, transferables) {
 }
 
 async function getRealm() {
-  try {
-    if (realm == undefined) {
-      spinner.text = 'Opening realm…';
-      spinner.start();
+  if (realm == undefined) {
+    spinner.text = 'Opening realm…';
+    spinner.start();
 
-      realm = await openRealm();
+    return openRealm()
+      .then(aRealm => {
+        realm = aRealm;
+        aRealm.syncSession.addProgressNotification('download', 'reportIndefinitely', transferProgress);
+        spinner.text = 'Applying subscriptions…';
 
-      realm.syncSession.addProgressNotification('download', 'reportIndefinitely', transferProgress);
+        return applyInitialSubscriptions(realm);
+      })
+      .then(() => {
+        spinner.succeed('Opened realm!');
+        return realm;
+      })
+      .catch(reason => {
+        const msg = JSON.stringify(reason, null, 2);
 
-      spinner.text = 'Applying subscriptions…';
+        spinner.fail(msg);
+        logToFile(`Error: ${msg}`);
 
-      await applyInitialSubscriptions(realm);
-
-      spinner.succeed('Opened realm!');
-    }
-  } catch (error) {
-    spinner.fail(`${JSON.stringify(error, null, 2)}`);
+        setTimeout(() => { process.exit(1) }, 1000);
+      });
+  } else {
+    return new Promise((resolve, reject) => {
+      resolve(realm);
+    });
   }
-  return realm;
 }
 
 function closeRealm() {
