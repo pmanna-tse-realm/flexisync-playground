@@ -1,8 +1,7 @@
-const Realm = require("realm");
 const clear = require("clear");
+const { spinner, waitForKey } = require('./utils');
 const inquirer = require("inquirer");
-const index = require("../index");
-const main = require("./main");
+const realmApp = require("./realmApp");
 const output = require("./output");
 const config = require("./config");
 
@@ -11,7 +10,7 @@ function sleep(ms) {
     setTimeout(resolve, ms);
   });
 }
- 
+
 // We keep our own copy of the subscriptions' definition to support the Refresh functionality
 function getSavedSubscriptions() {
   const appId = config.getValue("appId")
@@ -32,7 +31,7 @@ function getSubscriptions(realm) {
   if (!realm.subscriptions.isEmpty) {
     let subscriptions = [];
 
-    realm.subscriptions.forEach((value, index, subscriptionSet) => subscriptions.push({ Name: value.name, Table: value.objectType, Query: value.queryString }));
+    realm.subscriptions.forEach((value) => subscriptions.push({ Name: value.name, Table: value.objectType, Query: value.queryString }));
 
     return subscriptions;
   } else {
@@ -49,11 +48,11 @@ async function clearSubscriptions(realm) {
 }
 
 async function listSubscriptions() {
-  const subscriptions = getSubscriptions(await index.getRealm());
+  const subscriptions = getSubscriptions(await realmApp.getRealm());
 
   output.table(subscriptions);
 
-  await main.waitForKey();
+  await waitForKey();
 }
 
 async function applyInitialSubscriptions(realm) {
@@ -88,7 +87,7 @@ async function applyInitialSubscriptions(realm) {
 }
 
 async function addModifySubscription() {
-  const realm = await index.getRealm()
+  const realm = await realmApp.getRealm()
 
   const input = await inquirer.prompt([
     {
@@ -115,8 +114,6 @@ async function addModifySubscription() {
     const objects = realm.objects(input.collection);
 
     if (objects) {
-      const spinner = index.spinner;
-
       spinner.text = `Adding/Modifying subscription ${input.name}…`;
       spinner.start();
 
@@ -145,12 +142,13 @@ async function addModifySubscription() {
   } catch (err) {
     output.error(err.message);
   }
-      
+
   await sleep(1000);
+  spinner.clear();
 }
 
 async function removeSubscription() {
-  const realm = await index.getRealm()
+  const realm = await realmApp.getRealm()
   const subscriptions = getSubscriptions(realm);
 
   clear();
@@ -171,45 +169,50 @@ async function removeSubscription() {
   switch (choice.remove) {
     case 'Back':
       return;
-    default: {
-      const spinner = index.spinner;
+    default:
+      try {
+        spinner.text = `Removing subscription ${choice.remove}…`;
+        spinner.start();
 
-      spinner.text = `Removing subscription ${choice.remove}…`;
-      spinner.start();
+        await realm.subscriptions.update((mutableSubs) => {
+          mutableSubs.removeByName(choice.remove);
+        });
 
-      await realm.subscriptions.update((mutableSubs) => {
-        mutableSubs.removeByName(choice.remove);
-      });
+        const appId = config.getValue("appId")
+        let appParams = config.getValue(appId);
 
-      const appId = config.getValue("appId")
-      let appParams = config.getValue(appId);
+        delete appParams.subscriptions[choice.remove];
 
-      delete appParams.subscriptions[choice.remove];
+        config.setValue(appId, appParams);
 
-      config.setValue(appId, appParams);
+        spinner.succeed("Subscription removed!");
+      } catch (err) {
+        output.error(err.message);
+      }
 
-      spinner.succeed("Subscription removed!");
-      
+      spinner.clear();
       await sleep(1000);
-    }
   }
 }
 
 async function refreshSubscriptions() {
-  const realm = await index.getRealm();
+  const realm = await realmApp.getRealm();
 
   if (realm) {
-    const spinner = index.spinner;
-
     spinner.text = "Clearing subscriptions…";
     spinner.start();
-    await clearSubscriptions(realm);
-    spinner.text = "Applying subscriptions…";
-    await applyInitialSubscriptions(realm);
+    try {
+      await clearSubscriptions(realm);
+      spinner.text = "Applying subscriptions…";
+      await applyInitialSubscriptions(realm);
 
-    spinner.succeed("Subscriptions refreshed!");
-      
+      spinner.succeed("Subscriptions refreshed!");
+    } catch (err) {
+      output.error(err.message);
+    }
+
     await sleep(1000);
+    spinner.clear();
   }
 }
 

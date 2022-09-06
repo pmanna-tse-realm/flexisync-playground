@@ -1,7 +1,5 @@
-const Realm = require("realm");
-const main = require("./main");
-const index = require("../index");
-const config = require("./config");
+const { waitForKey } = require('./utils');
+const { getRealm } = require("./realmApp");
 const output = require("./output");
 const inquirer = require("inquirer");
 
@@ -77,11 +75,11 @@ async function showTableContent(realm, className) {
 
   output.table(samples);
 
-  await main.waitForKey();
+  await waitForKey();
 }
 
 async function showContent() {
-  let realm = await index.getRealm();
+  let realm = await getRealm();
 
   if (realm == undefined) { return; }
 
@@ -104,7 +102,8 @@ async function showContent() {
       type: "rawlist",
       name: "select",
       message: "Choose a table to get a sample from:",
-      choices: [...classNames, new inquirer.Separator(), "Back"]
+      choices: [...classNames, new inquirer.Separator(), "Back"],
+      pageSize: 16
     },
   ]);
 
