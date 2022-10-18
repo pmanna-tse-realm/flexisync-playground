@@ -74,16 +74,16 @@ async function openRealm() {
       clientReset: {
         mode: "discardLocal",
         // These callbacks do nothing here, but can be used to react to a Client Reset when in .discardLocal mode
-        clientResetBefore: (before) => {
+        onBefore: (before) => {
           logToFile(`Before a Client Reset for ${before.path})`);
         },
-        clientResetAfter: (before, after) => {
+        onAfter: (before, after) => {
           logToFile(`After a Client Reset for ${before.path} => ${after.path})`);
         }
       },
       newRealmFileBehavior: { type: 'downloadBeforeOpen', timeOutBehavior: 'throwException' },
       existingRealmFileBehavior: { type: 'openImmediately', timeOutBehavior: 'openLocalRealm' },
-      error: errorSync
+      onError: errorSync
     },
   };
 

@@ -122,6 +122,44 @@ async function registerUser() {
   }
 }
 
+async function logInKey() {
+  const input = await inquirer.prompt([
+    {
+      type: "input",
+      name: "apiKey",
+      message: "API Key:",
+    },
+  ]);
+
+  if (input.apiKey.length < 10) {
+    output.error("Invalid API Key");
+    await waitForKey();
+    return;
+  }
+
+  try {
+    const credentials = Realm.Credentials.apiKey(
+      input.apiKey
+    );
+
+    const app = getApp();
+    const user = await app.logIn(credentials);
+
+    if (user) {
+      output.result("You have successfully logged in as " + app.currentUser.id);
+      await mainMenu();
+    } else {
+      output.error("There was an error logging you in");
+      await waitForKey();
+      return;
+    }
+  } catch (err) {
+    output.error(err.message);
+    await waitForKey();
+    return;
+  }
+}
+
 async function logInCurrent() {
   await mainMenu();
 }
@@ -143,6 +181,7 @@ function getAuthedUser() {
 exports.getAuthedUser = getAuthedUser;
 exports.anonymous = anonymous;
 exports.logIn = logIn;
+exports.logInKey = logInKey;
 exports.logInCurrent = logInCurrent;
 exports.logOut = logOut;
 exports.registerUser = registerUser;
