@@ -41,9 +41,13 @@ function getSubscriptions(realm) {
 
 async function clearSubscriptions(realm) {
   if (!realm.subscriptions.isEmpty && realmApp.isAppConnected()) {
-    await realm.subscriptions.update((mutableSubs) => {
+    realm.subscriptions.update((mutableSubs) => {
       mutableSubs.removeAll();
+    }).catch((reason) => {
+      output.error(reason);
     });
+
+    await realm.subscriptions.waitForSynchronization();
   }
 }
 
@@ -125,14 +129,18 @@ async function addModifySubscription() {
       spinner.text = `Adding/Modifying subscription ${input.name}…`;
       spinner.start();
 
-      await realm.subscriptions.update((mutableSubs) => {
+      realm.subscriptions.update((mutableSubs) => {
         if (input.query.length > 2) {
           mutableSubs.add(objects.filtered(input.query), { name: input.name });
         } else {
           mutableSubs.add(objects, { name: input.name });
         }
+      }).catch((reason) => {
+        output.error(reason);
       });
-
+  
+      await realm.subscriptions.waitForSynchronization();
+  
       const appId = config.getValue("appId")
       let appParams = config.getValue(appId);
 
@@ -186,10 +194,14 @@ async function removeSubscription() {
         spinner.text = `Removing subscription ${choice.remove}…`;
         spinner.start();
 
-        await realm.subscriptions.update((mutableSubs) => {
+        realm.subscriptions.update((mutableSubs) => {
           mutableSubs.removeByName(choice.remove);
+        }).catch((reason) => {
+          output.error(reason);
         });
-
+    
+        await realm.subscriptions.waitForSynchronization();
+    
         const appId = config.getValue("appId")
         let appParams = config.getValue(appId);
 
