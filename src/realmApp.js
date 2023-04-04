@@ -54,12 +54,14 @@ function errorSync(session, error) {
       break;
     // Handle other cases…
     default:
-      msg = `Error: ${error.message} Exiting…`;
+      msg = `Error: ${error.message}${error.isFatal ? " Exiting…" : ""}`;
 
-      logToFile(msg);
+      logToFile(`Error dump: ${JSON.stringify(error)}`);
       output.error(msg);
-
-      setTimeout(() => { process.exit(error.code) }, 1000);
+ 
+      if (error.isFatal) {
+        setTimeout(() => { process.exit(error.code) }, 1000);
+      }
       break;
   }
 }
@@ -72,16 +74,16 @@ async function openRealm() {
       clientReset: {
         mode: "discardLocal",
         // These callbacks do nothing here, but can be used to react to a Client Reset when in .discardLocal mode
-        clientResetBefore: (before) => {
+        onBefore: (before) => {
           logToFile(`Before a Client Reset for ${before.path})`);
         },
-        clientResetAfter: (before, after) => {
+        onAfter: (before, after) => {
           logToFile(`After a Client Reset for ${before.path} => ${after.path})`);
         }
       },
       newRealmFileBehavior: { type: 'downloadBeforeOpen', timeOutBehavior: 'throwException' },
       existingRealmFileBehavior: { type: 'openImmediately', timeOutBehavior: 'openLocalRealm' },
-      error: errorSync
+      onError: errorSync
     },
   };
 
@@ -130,6 +132,13 @@ async function getRealm() {
   }
 }
 
+function isAppConnected() {
+  if (realm == undefined) {
+    return false;
+  }
+  return realm.syncSession.connectionState != "disconnected";
+}
+
 function closeRealm() {
   if (realm != undefined) {
     realm.close();
@@ -137,8 +146,8 @@ function closeRealm() {
   }
 }
 
-
 exports.getApp = getApp;
 exports.setupApp = setupApp;
 exports.getRealm = getRealm;
+exports.isAppConnected = isAppConnected;
 exports.closeRealm = closeRealm;

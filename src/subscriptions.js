@@ -40,10 +40,14 @@ function getSubscriptions(realm) {
 }
 
 async function clearSubscriptions(realm) {
-  if (!realm.subscriptions.isEmpty) {
-    await realm.subscriptions.update((mutableSubs) => {
+  if (!realm.subscriptions.isEmpty && realmApp.isAppConnected()) {
+    realm.subscriptions.update((mutableSubs) => {
       mutableSubs.removeAll();
+    }).catch((reason) => {
+      output.error(reason);
     });
+
+    await realm.subscriptions.waitForSynchronization();
   }
 }
 
@@ -59,6 +63,10 @@ async function applyInitialSubscriptions(realm) {
   if (realm.subscriptions.isEmpty) {
     const subscriptions = getSavedSubscriptions();
     const keys = Object.keys(subscriptions);
+
+    if (!realmApp.isAppConnected()) {
+      throw {message: "App is not connected to backend!"};
+    }
 
     if (keys.length > 0) {
       let cursors = {};
@@ -114,17 +122,25 @@ async function addModifySubscription() {
     const objects = realm.objects(input.collection);
 
     if (objects) {
+      if (!realmApp.isAppConnected()) {
+        throw {message: "App is not connected to backend!"};
+      }
+
       spinner.text = `Adding/Modifying subscription ${input.name}…`;
       spinner.start();
 
-      await realm.subscriptions.update((mutableSubs) => {
+      realm.subscriptions.update((mutableSubs) => {
         if (input.query.length > 2) {
           mutableSubs.add(objects.filtered(input.query), { name: input.name });
         } else {
           mutableSubs.add(objects, { name: input.name });
         }
+      }).catch((reason) => {
+        output.error(reason);
       });
-
+  
+      await realm.subscriptions.waitForSynchronization();
+  
       const appId = config.getValue("appId")
       let appParams = config.getValue(appId);
 
@@ -171,13 +187,21 @@ async function removeSubscription() {
       return;
     default:
       try {
+        if (!realmApp.isAppConnected()) {
+          throw {message: "App is not connected to backend!"};
+        }
+
         spinner.text = `Removing subscription ${choice.remove}…`;
         spinner.start();
 
-        await realm.subscriptions.update((mutableSubs) => {
+        realm.subscriptions.update((mutableSubs) => {
           mutableSubs.removeByName(choice.remove);
+        }).catch((reason) => {
+          output.error(reason);
         });
-
+    
+        await realm.subscriptions.waitForSynchronization();
+    
         const appId = config.getValue("appId")
         let appParams = config.getValue(appId);
 
@@ -199,9 +223,14 @@ async function refreshSubscriptions() {
   const realm = await realmApp.getRealm();
 
   if (realm) {
-    spinner.text = "Clearing subscriptions…";
-    spinner.start();
     try {
+      if (!realmApp.isAppConnected()) {
+        throw {message: "App is not connected to backend!"};
+      }
+  
+      spinner.text = "Clearing subscriptions…";
+      spinner.start();
+      
       await clearSubscriptions(realm);
       spinner.text = "Applying subscriptions…";
       await applyInitialSubscriptions(realm);

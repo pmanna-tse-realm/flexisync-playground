@@ -52,6 +52,9 @@ async function login() {
       case Choices.RegisterUser:
         await users.registerUser();
         break;
+      case Choices.LogInAPI:
+        await users.logInKey();
+        break;
       case Choices.LogInAnon:
         await users.anonymous();
         break;
