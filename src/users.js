@@ -23,7 +23,7 @@ async function anonymous() {
     output.error(err.message);
     await waitForKey();
     return;
-}
+  }
 }
 
 async function logIn() {
@@ -94,7 +94,7 @@ async function registerUser() {
   }
 
   const app = getApp();
-    
+
   try {
     await app.emailPasswordAuth.registerUser({
       email: input.email,
@@ -178,6 +178,39 @@ function getAuthedUser() {
   return getApp().currentUser;
 }
 
+async function getCustomUserData(refresh) {
+  if (refresh)
+    await getApp().currentUser.refreshCustomData();
+  console.table(getAuthedUser().customData)
+}
+
+async function showCustomDataOptions() {
+
+  const Choices = {
+    ShowCustomData: "Show Custom Data",
+    RefreshCustomData: "Refresh & show Custom Data"
+  };
+
+  let choice = await inquirer.prompt([
+    {
+      type: "rawlist",
+      name: "select",
+      message: "Choose the option you want:",
+      choices: [...Object.values(Choices), "Back", new inquirer.Separator()],
+      pageSize: 16
+    }
+  ]);
+
+  switch (choice.select) {
+    case Choices.ShowCustomData:
+      await getCustomUserData(false);
+      break;
+    case Choices.RefreshCustomData:
+      await getCustomUserData(true);
+      break;
+  }
+}
+
 exports.getAuthedUser = getAuthedUser;
 exports.anonymous = anonymous;
 exports.logIn = logIn;
@@ -185,3 +218,4 @@ exports.logInKey = logInKey;
 exports.logInCurrent = logInCurrent;
 exports.logOut = logOut;
 exports.registerUser = registerUser;
+exports.showCustomDataOptions = showCustomDataOptions;

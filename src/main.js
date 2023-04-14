@@ -1,14 +1,17 @@
 const inquirer = require("inquirer");
 const clear = require("clear");
+const user = require("../src/users");
 const content = require("./content");
 const subscriptions = require("./subscriptions");
 const output = require("./output");
+const { waitForKey } = require("./utils");
 
 async function mainMenu() {
   while (true) {
     try {
       const Choices = {
         ShowContent: "Show current Realm content",
+        CustomData: "Show User Custom Data",
         ListSubs: "List current subscriptions",
         AddSub: "Add/Modify a subscription",
         DelSub: "Delete a subscription",
@@ -28,6 +31,10 @@ async function mainMenu() {
       switch (answers.mainMenu) {
         case Choices.ShowContent:
           await content.showContent();
+          break;
+        case Choices.CustomData:
+          await user.showCustomDataOptions();
+          await waitForKey();
           break;
         case Choices.ListSubs:
           await subscriptions.listSubscriptions();
