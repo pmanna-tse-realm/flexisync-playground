@@ -61,3 +61,5 @@ Pods
 # Realm
 mongodb-realm
 
+# Logs
+flxsyncplay.*
