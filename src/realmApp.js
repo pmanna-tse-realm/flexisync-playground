@@ -108,7 +108,8 @@ async function getRealm() {
     return openRealm()
       .then(aRealm => {
         realm = aRealm;
-        aRealm.syncSession.addProgressNotification('download', 'reportIndefinitely', transferProgress);
+        // Progress notifications don't apply to Flexible Sync yet
+        // aRealm.syncSession.addProgressNotification('download', 'reportIndefinitely', transferProgress);
         spinner.text = 'Applying subscriptions…';
 
         return applyInitialSubscriptions(realm);
@@ -141,6 +142,7 @@ function isAppConnected() {
 
 function closeRealm() {
   if (realm != undefined) {
+    // realm.syncSession.removeProgressNotification(transferProgress);
     realm.close();
     realm = undefined;
   }

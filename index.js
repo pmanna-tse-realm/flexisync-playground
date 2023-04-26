@@ -12,17 +12,19 @@ async function login() {
     clear();
 
     let Choices = {};
+    const currentUser = users.getAuthedUser();
 
-    if (users.getAuthedUser()) {
+    if (currentUser) {
       Choices.LogInCurrent = "Login with current user";
+    } else {
+      Choices.RegisterUser = "Register as a new email/password user";
     }
 
     Choices.LogInUser = "Log in with email/password";
-    Choices.RegisterUser = "Register as a new email/password user";
     Choices.LogInAPI = "Login with an API Key";
     Choices.LogInAnon = "Login anonymously";
 
-    if (users.getAuthedUser()) {
+    if (currentUser) {
       Choices.LogOut = "Log out";
     }
 
@@ -46,17 +48,28 @@ async function login() {
       case Choices.LogInCurrent:
         await users.logInCurrent();
         break;
-      case Choices.LogInUser:
-        await users.logIn();
-        break;
       case Choices.RegisterUser:
         await users.registerUser();
         break;
+      case Choices.LogInUser:
+        if (currentUser) {
+          await users.logOut();
+        }
+        await users.logIn();
+        break;
       case Choices.LogInAPI:
-        await users.logInKey();
+        case Choices.LogInUser:
+          if (currentUser) {
+            await users.logOut();
+          }
+          await users.logInKey();
         break;
       case Choices.LogInAnon:
-        await users.anonymous();
+        case Choices.LogInUser:
+          if (currentUser) {
+            await users.logOut();
+          }
+          await users.anonymous();
         break;
       case Choices.LogOut:
         await users.logOut();

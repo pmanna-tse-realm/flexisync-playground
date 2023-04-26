@@ -181,7 +181,11 @@ function getAuthedUser() {
 async function getCustomUserData(refresh) {
   if (refresh)
     await getApp().currentUser.refreshCustomData();
-  console.table(getAuthedUser().customData)
+  
+  const user = getAuthedUser();
+
+  console.log(`User ${user.profile.name ?? (user.profile.email ?? '<Unknown>')}`);
+  console.table(user.customData)
 }
 
 async function showCustomDataOptions() {
