@@ -46,6 +46,9 @@ async function showTableContent(realm, className) {
 
       // Showing non-basic types is confusing, so we filter for common readable types + _id
       switch (type) {
+        case 'boolean':
+          objDesc[field] = value ? true : false;
+          break;
         case 'object':
           if (field == '_id') { objDesc[field] = value.toHexString(); }
           break;
