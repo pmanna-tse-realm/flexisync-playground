@@ -29,9 +29,11 @@ function getSavedSubscriptions() {
 
 function getSubscriptions(realm) {
   if (!realm.subscriptions.isEmpty) {
+    // Since version 12.0, no array methods for SubscriptionSet anymore
+    let rSubs = [...realm.subscriptions];
     let subscriptions = [];
 
-    realm.subscriptions.forEach((value) => subscriptions.push({ Name: value.name, Table: value.objectType, Query: value.queryString }));
+    rSubs.forEach((value) => subscriptions.push({ Name: value.name, Table: value.objectType, Query: value.queryString }));
 
     return subscriptions;
   } else {

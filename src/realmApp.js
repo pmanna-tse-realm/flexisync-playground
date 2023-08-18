@@ -14,10 +14,10 @@ function setupApp(appId) {
     timeout: 10000,
   };
 
-  app = new Realm.App(appConfig);
+  Realm.setLogLevel("debug");
+  Realm.setLogger((level, message) => logToFile(`(${level}) ${message}`));
 
-  Realm.App.Sync.setLogLevel(app, "debug");
-  Realm.App.Sync.setLogger(app, (level, message) => logToFile(`(${level}) ${message}`));
+  app = new Realm.App(appConfig);
 
   config.setValue("appId", appId);
 }
@@ -72,7 +72,7 @@ async function openRealm() {
       user: app.currentUser,
       flexible: true,
       clientReset: {
-        mode: "discardLocal",
+        mode: "discardUnsyncedChanges",
         // These callbacks do nothing here, but can be used to react to a Client Reset when in .discardLocal mode
         onBefore: (before) => {
           logToFile(`Before a Client Reset for ${before.path})`);
