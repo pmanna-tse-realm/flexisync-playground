@@ -16,9 +16,13 @@ function queryClasses(realm) {
 }
 
 function trackClass(realm, className) {
-  let objects = realm.objects(className);
+  try {
+    let objects = realm.objects(className);
 
-  output.watchResult(`${className}`, `${objects.length} objects`);
+    output.watchResult(`${className}`, `${objects.length} objects`);
+  } catch (error) {
+    output.error(error);
+  }
 }
 
 async function showTableContent(realm, className) {
@@ -87,7 +91,7 @@ async function showContent() {
   let classNames = [];
 
   for (const objSchema of synchedClasses) {
-    if (!objSchema['embedded']) {
+    if (!objSchema['embedded'] && !objSchema['asymmetric']) {
       classNames.push(objSchema['name']);
     }
   }

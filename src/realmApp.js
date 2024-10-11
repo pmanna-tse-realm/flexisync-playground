@@ -100,6 +100,10 @@ function transferProgress(transferred, transferables) {
   }
 }
 
+function connectionState(newState, oldState) {
+  logToFile(`Connection: ${oldState} => ${newState}`);
+}
+
 async function getRealm() {
   if (realm == undefined) {
     spinner.text = 'Opening realm…';
@@ -110,6 +114,7 @@ async function getRealm() {
         realm = aRealm;
         // Progress notifications don't apply to Flexible Sync yet
         // aRealm.syncSession.addProgressNotification('download', 'reportIndefinitely', transferProgress);
+        aRealm.syncSession.addConnectionNotification(connectionState);
         spinner.text = 'Applying subscriptions…';
 
         return applyInitialSubscriptions(realm);
@@ -143,6 +148,7 @@ function isAppConnected() {
 function closeRealm() {
   if (realm != undefined) {
     // realm.syncSession.removeProgressNotification(transferProgress);
+    realm.syncSession.removeConnectionNotification(connectionState);
     realm.close();
     realm = undefined;
   }

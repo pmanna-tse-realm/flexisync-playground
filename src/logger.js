@@ -33,5 +33,5 @@ exports.logToFile = function logToFile(message) {
 
   let date = new Date();
 
-  stream.write(`[${date.toISOString()}] - ${message}\n`);
+  stream.write(`[${date.toUTCString()}] - ${message}\n`);
 }
