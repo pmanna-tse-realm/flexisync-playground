@@ -8,7 +8,7 @@ function queryClasses(realm) {
 
   var classes = [];
 
-  for (const objSchema of realm_schema.sort((a, b) => a['name'] < b['name'])) {
+  for (const objSchema of realm_schema.sort((a, b) => a["name"] < b["name"])) {
     classes.push(objSchema);
   }
 
@@ -44,23 +44,25 @@ async function showTableContent(realm, className) {
     let objDesc = {};
 
     // Build a readable sample of the object
-    fields.forEach(field => {
+    fields.forEach((field) => {
       const value = object[field];
       const type = typeof value;
 
       // Showing non-basic types is confusing, so we filter for common readable types + _id
       switch (type) {
-        case 'object':
-          if (field == '_id') { objDesc[field] = value.toHexString(); }
+        case "object":
+          if (field == "_id") {
+            objDesc[field] = value.toHexString();
+          }
           break;
-        case 'string':
+        case "string":
           if (value.length <= 30) {
             objDesc[field] = value;
           } else {
-            objDesc[field] = value.substring(0, 29) + '…';
+            objDesc[field] = value.substring(0, 29) + "…";
           }
           break;
-        case 'number':
+        case "number":
           objDesc[field] = value;
           break;
         default:
@@ -85,21 +87,22 @@ async function showTableContent(realm, className) {
 async function showContent() {
   let realm = await getRealm();
 
-  if (realm == undefined) { return; }
+  if (realm == undefined) {
+    return;
+  }
 
   let synchedClasses = queryClasses(realm);
   let classNames = [];
 
   for (const objSchema of synchedClasses) {
-    if (!objSchema['embedded'] && !objSchema['asymmetric']) {
-      classNames.push(objSchema['name']);
+    if (!objSchema["embedded"] && !objSchema["asymmetric"]) {
+      classNames.push(objSchema["name"]);
     }
   }
 
-  classNames.forEach(name => {
+  classNames.forEach((name) => {
     trackClass(realm, name);
   });
-
 
   let choice = await inquirer.prompt([
     {
@@ -107,12 +110,12 @@ async function showContent() {
       name: "select",
       message: "Choose a table to get a sample from:",
       choices: [...classNames, new inquirer.Separator(), "Back"],
-      pageSize: 16
+      pageSize: 16,
     },
   ]);
 
   switch (choice.select) {
-    case 'Back':
+    case "Back":
       return;
     default:
       await showTableContent(realm, choice.select);

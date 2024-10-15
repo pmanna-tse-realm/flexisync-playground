@@ -41,7 +41,7 @@ async function logIn() {
     },
   ]);
 
-  if ((input.email.length < 5) || (input.password.length < 3)) {
+  if (input.email.length < 5 || input.password.length < 3) {
     output.error("Invalid user/password");
     await waitForKey();
     return;
@@ -50,7 +50,7 @@ async function logIn() {
   try {
     const credentials = Realm.Credentials.emailPassword(
       input.email,
-      input.password
+      input.password,
     );
 
     const app = getApp();
@@ -87,7 +87,7 @@ async function registerUser() {
     },
   ]);
 
-  if ((input.email.length < 5) || (input.password.length < 3)) {
+  if (input.email.length < 5 || input.password.length < 3) {
     output.error("Invalid user/password");
     await waitForKey();
     return;
@@ -102,12 +102,12 @@ async function registerUser() {
     });
     const credentials = Realm.Credentials.emailPassword(
       input.email,
-      input.password
+      input.password,
     );
     const user = await app.logIn(credentials);
     if (user) {
       output.result(
-        "You have successfully created a new Realm user and are now logged in."
+        "You have successfully created a new Realm user and are now logged in.",
       );
       await mainMenu();
     } else {
@@ -138,9 +138,7 @@ async function logInKey() {
   }
 
   try {
-    const credentials = Realm.Credentials.apiKey(
-      input.apiKey
-    );
+    const credentials = Realm.Credentials.apiKey(input.apiKey);
 
     const app = getApp();
     const user = await app.logIn(credentials);
@@ -179,20 +177,18 @@ function getAuthedUser() {
 }
 
 async function getCustomUserData(refresh) {
-  if (refresh)
-    await getApp().currentUser.refreshCustomData();
-  
+  if (refresh) await getApp().currentUser.refreshCustomData();
+
   const user = getAuthedUser();
 
-  console.log(`User ${user.profile.name ?? (user.profile.email ?? '<Unknown>')}`);
-  console.table(user.customData)
+  console.log(`User ${user.profile.name ?? user.profile.email ?? "<Unknown>"}`);
+  console.table(user.customData);
 }
 
 async function showCustomDataOptions() {
-
   const Choices = {
     ShowCustomData: "Show Custom Data",
-    RefreshCustomData: "Refresh & show Custom Data"
+    RefreshCustomData: "Refresh & show Custom Data",
   };
 
   let choice = await inquirer.prompt([
@@ -201,8 +197,8 @@ async function showCustomDataOptions() {
       name: "select",
       message: "Choose the option you want:",
       choices: [...Object.values(Choices), "Back", new inquirer.Separator()],
-      pageSize: 16
-    }
+      pageSize: 16,
+    },
   ]);
 
   switch (choice.select) {

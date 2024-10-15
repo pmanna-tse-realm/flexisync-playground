@@ -31,7 +31,7 @@ async function login() {
     Choices.Quit = "Quit";
 
     output.header(
-      "Please log in to your Realm account or register as a new user."
+      "Please log in to your Realm account or register as a new user.",
     );
 
     let choice = await inquirer.prompt([
@@ -40,7 +40,7 @@ async function login() {
         name: "start",
         message: "What do you want to do?",
         choices: [...Object.values(Choices), new inquirer.Separator()],
-        pageSize: 16
+        pageSize: 16,
       },
     ]);
 
@@ -58,18 +58,16 @@ async function login() {
         await users.logIn();
         break;
       case Choices.LogInAPI:
-        case Choices.LogInUser:
-          if (currentUser) {
-            await users.logOut();
-          }
-          await users.logInKey();
+        if (currentUser) {
+          await users.logOut();
+        }
+        await users.logInKey();
         break;
       case Choices.LogInAnon:
-        case Choices.LogInUser:
-          if (currentUser) {
-            await users.logOut();
-          }
-          await users.anonymous();
+        if (currentUser) {
+          await users.logOut();
+        }
+        await users.anonymous();
         break;
       case Choices.LogOut:
         await users.logOut();
@@ -94,7 +92,9 @@ async function run() {
   if (appId == undefined) {
     output.header("Input the ID of the app you want to test");
   } else {
-    output.header(`Input the ID of the app you want to test (or Enter to use ${appId})`);
+    output.header(
+      `Input the ID of the app you want to test (or Enter to use ${appId})`,
+    );
   }
 
   const input = await inquirer.prompt([
@@ -102,7 +102,7 @@ async function run() {
       type: "input",
       name: "appId",
       message: "App ID:",
-    }
+    },
   ]);
 
   try {
@@ -114,7 +114,7 @@ async function run() {
 
     await login();
   } catch (error) {
-    throw (error);
+    throw error;
   }
 }
 

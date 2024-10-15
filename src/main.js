@@ -25,7 +25,7 @@ async function mainMenu() {
         name: "mainMenu",
         message: "What would you like to do?",
         choices: [...Object.values(Choices), "Back", new inquirer.Separator()],
-        pageSize: 16
+        pageSize: 16,
       });
 
       switch (answers.mainMenu) {

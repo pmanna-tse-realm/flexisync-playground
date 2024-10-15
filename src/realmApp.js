@@ -32,7 +32,7 @@ function errorSync(session, error) {
   let msg = "";
 
   switch (error.name) {
-    case 'ClientReset':
+    case "ClientReset":
       if (realm != undefined) {
         const realmPath = realm.path;
 
@@ -49,7 +49,9 @@ function errorSync(session, error) {
 
       // We can't rely on when this is called, to have a clean recover,
       // chances are that we're inside one of the `inquirer` promises, so we can't do much
-      setTimeout(() => { process.exit(error.code) }, 1000);
+      setTimeout(() => {
+        process.exit(error.code);
+      }, 1000);
 
       break;
     // Handle other cases…
@@ -58,9 +60,11 @@ function errorSync(session, error) {
 
       logToFile(`Error dump: ${JSON.stringify(error)}`);
       output.error(msg);
- 
+
       if (error.isFatal) {
-        setTimeout(() => { process.exit(error.code) }, 1000);
+        setTimeout(() => {
+          process.exit(error.code);
+        }, 1000);
       }
       break;
   }
@@ -78,12 +82,20 @@ async function openRealm() {
           logToFile(`Before a Client Reset for ${before.path})`);
         },
         onAfter: (before, after) => {
-          logToFile(`After a Client Reset for ${before.path} => ${after.path})`);
-        }
+          logToFile(
+            `After a Client Reset for ${before.path} => ${after.path})`,
+          );
+        },
       },
-      newRealmFileBehavior: { type: 'downloadBeforeOpen', timeOutBehavior: 'throwException' },
-      existingRealmFileBehavior: { type: 'openImmediately', timeOutBehavior: 'openLocalRealm' },
-      onError: errorSync
+      newRealmFileBehavior: {
+        type: "downloadBeforeOpen",
+        timeOutBehavior: "throwException",
+      },
+      existingRealmFileBehavior: {
+        type: "openImmediately",
+        timeOutBehavior: "openLocalRealm",
+      },
+      onError: errorSync,
     },
   };
 
@@ -106,30 +118,32 @@ function connectionState(newState, oldState) {
 
 async function getRealm() {
   if (realm == undefined) {
-    spinner.text = 'Opening realm…';
+    spinner.text = "Opening realm…";
     spinner.start();
 
     return openRealm()
-      .then(aRealm => {
+      .then((aRealm) => {
         realm = aRealm;
         // Progress notifications don't apply to Flexible Sync yet
         // aRealm.syncSession.addProgressNotification('download', 'reportIndefinitely', transferProgress);
         aRealm.syncSession.addConnectionNotification(connectionState);
-        spinner.text = 'Applying subscriptions…';
+        spinner.text = "Applying subscriptions…";
 
         return applyInitialSubscriptions(realm);
       })
       .then(() => {
-        spinner.succeed('Opened realm!');
+        spinner.succeed("Opened realm!");
         return realm;
       })
-      .catch(reason => {
+      .catch((reason) => {
         const msg = JSON.stringify(reason, null, 2);
 
         spinner.fail(msg);
         logToFile(`Error: ${msg}`);
 
-        setTimeout(() => { process.exit(1) }, 1000);
+        setTimeout(() => {
+          process.exit(1);
+        }, 1000);
       });
   } else {
     return new Promise((resolve, reject) => {

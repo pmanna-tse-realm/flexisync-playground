@@ -2,42 +2,50 @@ const chalk = require("chalk");
 const clear = require("clear");
 const figlet = require("figlet");
 
-module.exports.intro = function (text) {
+
+function intro(text) {
   clear();
   console.log(
     chalk.blueBright.bold(
       figlet.textSync(text, {
         font: "Computer",
-      })
-    )
+      }),
+    ),
   );
-};
+}
 
-module.exports.header = function (text) {
+function header(text) {
   console.log(chalk.yellowBright.bold("\n" + text + "\n"));
-};
+}
 
-module.exports.error = function (text) {
+function error(text) {
   console.log(chalk.red.bold("\n ❗\n" + text + "\n ❗\n"));
-};
+}
 
-module.exports.result = function (text) {
+function result(text) {
   console.log(chalk.yellowBright(text + "\n"));
-};
+}
 
-module.exports.watchResult = function (header, text) {
+function watchResult(header, text) {
   console.log(
-    chalk.bgCyan.black("\n---------------" + header + "----------------\n")
+    chalk.bgCyan.black("\n---------------" + header + "----------------\n"),
   );
   console.log(chalk.cyanBright(text + "\n"));
-};
+}
 
-module.exports.table = function (object, properties) {
-  console.log('\n');
+function table(object, properties) {
+  console.log("\n");
 
-  if ((Array.isArray(object)) && (object.length > 0)) {
+  if (Array.isArray(object) && object.length > 0) {
     console.table(object, properties);
   } else {
     console.log(chalk.bgGreen.black("     List is empty     \n"));
   }
 }
+
+exports.intro = intro;
+exports.header = header;
+exports.error = error;
+exports.result = result;
+exports.watchResult = watchResult;
+exports.table = table;
